@@ -251,7 +251,7 @@ class header_echo():
 
         self.data = b''
 
-        self._STRUCT_FORMAT_ = '8s' + 'iiiii' + 'iii' + 'p'
+        self._STRUCT_FORMAT_ = '8s' + 'iiiii' + 'iii'
 
         self.signature: bytes = _SIGNATURE_ECHO___
 
@@ -283,9 +283,7 @@ class header_echo():
 
                               self.chunk_size,
                               self.chunk_count,
-                              self.chunk_index,
-
-                              self.payload)
+                              self.chunk_index)
 
         rawdata += self.payload
         return rawdata
@@ -333,7 +331,7 @@ class header_upload():
         if dstdirpath is None:
             dstdirpath = '.'
 
-        self._STRUCT_FORMAT_ = '8s' + 'iiiiii' + 'iii' + 'ii' + 'p'
+        self._STRUCT_FORMAT_ = '8s' + 'iiiiii' + 'iii' + 'ii'
 
         # Unpack payload fields
         self.filename = b''
@@ -382,9 +380,7 @@ class header_upload():
                               self.chunk_index,
 
                               self.length_filename,
-                              self.length_dirpath,
-
-                              self.payload)
+                              self.length_dirpath)
 
         rawdata += self.payload
         return rawdata
@@ -439,7 +435,7 @@ class header_download():
                  filesize: int = 0,
                  data: bytes = b''):
 
-        self._STRUCT_FORMAT_ = '8s' + 'iiiiii' + 'iii' + 'i' + 'p'
+        self._STRUCT_FORMAT_ = '8s' + 'iiiiii' + 'iii' + 'i'
 
         # Unpack payload fields
         self.filepath = b''
@@ -486,9 +482,7 @@ class header_download():
                               self.chunk_count,
                               self.chunk_index,
 
-                              self.length_filepath,
-
-                              self.payload)
+                              self.length_filepath)
 
         rawdata += self.payload
         return rawdata
