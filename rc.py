@@ -251,7 +251,7 @@ class header_echo():
 
         self.data = b''
 
-        self._STRUCT_FORMAT_ = '8s' + 'iiiii' + 'iii'
+        self._STRUCT_FORMAT_ = '8s' + 'iiiii' + 'iii' + 'i'
 
         self.signature: bytes = _SIGNATURE_ECHO___
 
@@ -264,6 +264,8 @@ class header_echo():
         self.chunk_size: int = len(data)
         self.chunk_count: int = 0
         self.chunk_index: int = 0
+
+        self.errcode: int = 0
 
         self.payload: bytes = data
 
@@ -283,7 +285,9 @@ class header_echo():
 
                               self.chunk_size,
                               self.chunk_count,
-                              self.chunk_index)
+                              self.chunk_index,
+
+                              self.errcode)
 
         rawdata += self.payload
         return rawdata
@@ -308,6 +312,7 @@ class header_echo():
         hdr.chunk_size = unpack[6]
         hdr.chunk_count = unpack[7]
         hdr.chunk_index = unpack[8]
+        hdr.errcode = unpack[9]
 
         # Payload
         hdr.payload = data[hdr_size:]
@@ -331,7 +336,7 @@ class header_upload():
         if dstdirpath is None:
             dstdirpath = '.'
 
-        self._STRUCT_FORMAT_ = '8s' + 'iiiiii' + 'iii' + 'ii'
+        self._STRUCT_FORMAT_ = '8s' + 'iiiiii' + 'iii' + 'i' + 'ii'
 
         # Unpack payload fields
         self.filename = b''
@@ -350,6 +355,8 @@ class header_upload():
         self.chunk_size: int = len(data)
         self.chunk_count: int = 0
         self.chunk_index: int = 0
+
+        self.errcode: int = 0
 
         self.length_filename: int = len(filename)
         self.length_dirpath: int = len(dstdirpath)
@@ -379,6 +386,8 @@ class header_upload():
                               self.chunk_count,
                               self.chunk_index,
 
+                              self.errcode,
+
                               self.length_filename,
                               self.length_dirpath)
 
@@ -406,8 +415,11 @@ class header_upload():
         hdr.chunk_size = unpack[7]
         hdr.chunk_count = unpack[8]
         hdr.chunk_index = unpack[9]
-        hdr.length_filename = unpack[10]
-        hdr.length_dirpath = unpack[11]
+
+        self.errcode = unpack[10]
+
+        hdr.length_filename = unpack[11]
+        hdr.length_dirpath = unpack[12]
 
         # Payload
         hdr.payload = data[hdr_size:]
@@ -435,7 +447,7 @@ class header_download():
                  filesize: int = 0,
                  data: bytes = b''):
 
-        self._STRUCT_FORMAT_ = '8s' + 'iiiiii' + 'iii' + 'i'
+        self._STRUCT_FORMAT_ = '8s' + 'iiiiii' + 'iii' + 'i' + 'i'
 
         # Unpack payload fields
         self.filepath = b''
@@ -453,6 +465,8 @@ class header_download():
         self.chunk_size: int = len(data)
         self.chunk_count: int = 0
         self.chunk_index: int = 0
+
+        self.errcode: int = 0
 
         self.length_filepath: int = len(filepath)
 
@@ -482,6 +496,8 @@ class header_download():
                               self.chunk_count,
                               self.chunk_index,
 
+                              self.errcode,
+
                               self.length_filepath)
 
         rawdata += self.payload
@@ -508,7 +524,8 @@ class header_download():
         hdr.chunk_size = unpack[7]
         hdr.chunk_count = unpack[8]
         hdr.chunk_index = unpack[9]
-        hdr.length_filepath = unpack[10]
+        self.errcode = unpack[10]
+        hdr.length_filepath = unpack[11]
 
         # Payload
         hdr.payload = data[hdr_size:]
@@ -636,7 +653,7 @@ class header_execute():
                  isbase64: bool = False,
                  chunk_data: bytes = b''):
 
-        self._STRUCT_FORMAT_ = '8s' + 'iiiii' + 'iii' + 'iii' + 'Biii'
+        self._STRUCT_FORMAT_ = '8s' + 'iiiii' + 'iii' + 'iii' + 'i' + 'Biii'
 
         #
         # payload_data
@@ -674,6 +691,8 @@ class header_execute():
         if self.chunk_size > 0:
             self.chunk_count = 1
 
+        self.errcode: int = 0
+
         self.length_isbase64: int = 1
         self.length_program: int = len(program)
         self.length_argument: int = len(argument)
@@ -703,6 +722,8 @@ class header_execute():
                                   self.chunk_size,
                                   self.chunk_count,
                                   self.chunk_index,
+
+                                  self.errcode,
 
                                   self.length_isbase64,
                                   self.length_program,
@@ -764,11 +785,12 @@ class header_execute():
         hdr.chunk_size = unpack[9]
         hdr.chunk_count = unpack[10]
         hdr.chunk_index = unpack[11]
+        hdr.errcode = unpack[12]
 
-        hdr.length_isbase64 = unpack[12]
-        hdr.length_program = unpack[13]
-        hdr.length_argument = unpack[14]
-        hdr.length_workdir = unpack[15]
+        hdr.length_isbase64 = unpack[13]
+        hdr.length_program = unpack[14]
+        hdr.length_argument = unpack[15]
+        hdr.length_workdir = unpack[16]
 
         #
         # Payload (payload_data + chunk_data)
@@ -813,7 +835,7 @@ class header_execute():
 
 class header_text():
     def __init__(self, kind: action_kind = action_kind.unknown, title: str = 'default', data: bytes = b''):
-        self._STRUCT_FORMAT_ = '8s' + 'iiiii' + 'iii' + 'i'
+        self._STRUCT_FORMAT_ = '8s' + 'iiiii' + 'iii' + 'i' + 'i'
 
         #
         # payload_data
@@ -840,6 +862,8 @@ class header_text():
         self.chunk_count: int = 0
         self.chunk_index: int = 0
 
+        self.errcode: int = 0
+
         self.length_title: int = len(title)
 
         if len(data) > 0:
@@ -862,6 +886,8 @@ class header_text():
                               self.chunk_size,
                               self.chunk_count,
                               self.chunk_index,
+
+                              self.errcode,
 
                               self.length_title)
 
@@ -890,7 +916,8 @@ class header_text():
         hdr.chunk_size = unpack[6]
         hdr.chunk_count = unpack[7]
         hdr.chunk_index = unpack[8]
-        hdr.length_title = unpack[9]
+        hdr.errcode = unpack[9]
+        hdr.length_title = unpack[10]
 
         #
         # Payload
