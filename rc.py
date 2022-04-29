@@ -23,7 +23,7 @@ _1MB_ = _1KB_*1024
 #
 # definition for pyrc
 #
-_WAIT_TIMEOUT_ = 30
+_WAIT_TIMEOUT_ = 60
 _HEADER_SIZE_ = 16
 _CHUNK_SIZE_ = _1KB_*512
 _BUFFER_SIZE_ = _1MB_*2
@@ -185,8 +185,11 @@ class async_process():
                                          shell=True,
                                          cwd=self.workdir)
             try:
-                self.execrs.errcode = self.proc.wait(_WAIT_TIMEOUT_)
-                logging.error('fullcmd={} errcode={}'.format(fullcmd, self.execrs.errcode))
+                _WAIT_TIMEOUT_10_MINS_ = 60 * 5
+                self.execrs.errcode = self.proc.wait(_WAIT_TIMEOUT_10_MINS_)
+
+                logfmt = 'fullcmd={} errcode={}'
+                logging.error(logfmt.format(fullcmd, self.execrs.errcode))
 
                 stdout_lines = [line.decode('utf-8', errors="ignore").rstrip() for line in self.proc.stdout.readlines()]
                 self.execrs.stdout.extend(stdout_lines)
