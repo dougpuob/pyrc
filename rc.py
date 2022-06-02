@@ -1977,7 +1977,7 @@ class rcclient():
 
         return result
 
-    def upload(self, local_filepath: str, remote_dirpath: str = '.'):
+    def cmd_upload(self, local_filepath: str, remote_dirpath: str = '.'):
 
         filepath = os.path.abspath(local_filepath)
         if not os.path.exists(filepath):
@@ -2048,8 +2048,10 @@ class rcclient():
 
         return rcresult()
 
-    def download(self, remote_filepath: str, local_dirpath: str,
-                 overwrite: bool = True):
+    def cmd_download(self,
+                     remote_filepath: str,
+                     local_dirpath: str,
+                     overwrite: bool = True):
 
         # if not os.path.exists(remote_filepath):
         #     return error_file_not_found
@@ -2142,7 +2144,7 @@ class rcclient():
 
         return result
 
-    def list(self, dstdirpath: str):
+    def cmd_list(self, dstdirpath: str):
 
         ask_chunk = header_list(action_kind.ask, dstdirpath)
         self._send(ask_chunk.pack())
@@ -2178,11 +2180,11 @@ class rcclient():
         else:
             return error_wait_timeout_streaming
 
-    def execute(self,
-                program: str,
-                argument: str = '',
-                workdir: str = '.',
-                isbase64: bool = False):
+    def cmd_execute(self,
+                    program: str,
+                    argument: str = '',
+                    workdir: str = '.',
+                    isbase64: bool = False):
 
         argument_encoded = b''
         if isbase64:
@@ -2222,7 +2224,7 @@ class rcclient():
 
         return result
 
-    def text(self, title: str, data: bytes = b''):
+    def cmd_message(self, title: str, data: bytes = b''):
 
         ask_chunk = header_message(action_kind.ask, title, data)
         self._send(ask_chunk.pack())
@@ -2243,13 +2245,13 @@ class rcclient():
             return error_wait_timeout_streaming
 
     def inncmd_get_sysinfo(self):
-        result: rcresult = self.text('inncmd_sysinfo')
+        result: rcresult = self.cmd_message('inncmd_sysinfo')
         text = str(result.data, encoding='utf-8')
         data: inncmd_sysinfo = CONFIG().toCLASS(text)
         return data
 
     def inncmd_make_dir(self, path: str):
-        result: rcresult = self.text('inncmd_mkdir', path.encode())
+        result: rcresult = self.cmd_message('inncmd_mkdir', path.encode())
         text = str(result.data, encoding='utf-8')
         data: inncmd_mkdir = CONFIG().toCLASS(text)
         return data
@@ -2289,7 +2291,7 @@ if __name__ == '__main__':
                 # result = rcclt.execute('ifconfig')
                 # result = rcclt.execute('devcon64', 'rescan')
                 # result = rcclt.upload('../UsbTreeView.exe', '.')
-                result = rcclt.execute('pwd')
+                result = rcclt.cmd_execute('pwd')
 
                 # # # # # # # # # # #
                 # Windows commands  #
