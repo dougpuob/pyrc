@@ -11,6 +11,8 @@
  │                │           List              │                │
  │                │           Upload            │                │
  │                │           Download          │                │
+ │                │           Message           │                │
+ │                │                             │                │
  │                │◄---------------------------►│                │
  └────────────────┘                             └────────────────┘
 ```
@@ -18,7 +20,10 @@
 
 ## Features
 1. Supported three major operating systems, `Windows`, `Linux`, `macOS`.
-2. Supported four major functions, `Execute`, `List`, `Update`, and `Download`.
+2. Supported four major functions, `Execute`, `List`, `Update`, `Download`, and `Message` (customized actions).
+3. Inner command by `Message`:
+   1. `get_sysinfo`
+   2. `make_dir`
 
 
 ## Server
@@ -93,7 +98,9 @@ execute     ask   --->
 ```
 
 
-## Execute
+## Commands
+
+### Execute
 
 ```
 
@@ -104,6 +111,21 @@ class execute_subcmd(Enum):
     kill = 3
 
 ```
+
+### List
+
+### Update
+
+### Download
+
+### Message
+
+
+## Inn Commands
+
+### GetSysInfo
+
+### MakeDir
 
 
 ## License

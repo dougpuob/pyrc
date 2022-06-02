@@ -13,6 +13,11 @@ import threading
 from enum import Enum
 from types import SimpleNamespace
 
+
+# ==============================================================================
+# DEFINITIONS
+# ==============================================================================
+
 #
 # definition of unit
 #
@@ -58,7 +63,6 @@ class config():
             text = self.toTEXT()
         return json.loads(text, object_hook=lambda d: SimpleNamespace(**d))
 
-
 #
 # Exception definitions
 #
@@ -96,7 +100,7 @@ class action_name(Enum):
     download = 2
     list = 3
     execute = 4
-    text = 5
+    message = 5
     echo = 99
 
 
@@ -124,10 +128,14 @@ class proc_status(Enum):
     exception = 6
 
 
+# ==============================================================================
+# CLASSES
+# ==============================================================================
+
 #
-# Class definitions
+# Inner Commands
 #
-class computer_info(config):
+class inncmd_sysinfo(config):
     def __init__(self, osname: str = 'unknown', homedir: str = ''):
         self.osname = osname
         self.homedir = homedir
@@ -139,6 +147,9 @@ class inncmd_mkdir(config):
         self.result = result
 
 
+#
+# Basic classes
+#
 class execmdarg(config):
     def __init__(self,
                  program: bytes,
@@ -836,7 +847,7 @@ class header_execute():
         return hdr
 
 
-class header_text():
+class header_message():
     def __init__(self, kind: action_kind = action_kind.unknown, title: str = 'default', data: bytes = b''):
         self._STRUCT_FORMAT_ = '8s' + 'iiiii' + 'iii' + 'i' + 'i'
 
@@ -858,7 +869,7 @@ class header_text():
         self.header_size: int = 0
         self.total_size: int = 0
         self.payload_size: int = 0
-        self.action_name: int = action_name.text.value
+        self.action_name: int = action_name.message.value
         self.action_kind: int = kind.value
 
         self.chunk_size: int = len(data)
@@ -906,7 +917,7 @@ class header_text():
         hdr_size: int = int.from_bytes(data[8:11], 'little')
         hdr_only: bytes = data[:hdr_size]
 
-        hdr = header_text()
+        hdr = header_message()
 
         # Header files
         unpack = struct.unpack(self._STRUCT_FORMAT_, hdr_only)
@@ -1142,7 +1153,7 @@ class header():
         elif 5 == matched_index:
             logging.info('unpacking header_text ...')
 
-            hdr: header_text = header_text().unpack(full_header)
+            hdr: header_message = header_message().unpack(full_header)
             if hdr is None:
                 logging.warning('buffer is insufficient !!! (failed to unpack)')
                 return None, 0
@@ -1178,7 +1189,7 @@ class actor_callbacks():
         self.upload = None
         self.download = None
         self.execute = None
-        self.text = None
+        self.message = None
 
 
 class rcsock():
@@ -1285,11 +1296,11 @@ class rcsock():
                 #                             ask_chunk: header_execute):
                 self.server_callback.execute(self, chunk)
 
-            elif chunk.action_name == action_name.text.value:
-                # def _handle_text_command(self,
-                #                          sock: rcsock,
-                #                          ask_chunk: header_text):
-                self.server_callback.text(self, chunk)
+            elif chunk.action_name == action_name.message.value:
+                # def _handle_message_command(self,
+                #                             sock: rcsock,
+                #                             ask_chunk: header_text):
+                self.server_callback.message(self, chunk)
 
             else:
                 pass
@@ -1336,7 +1347,7 @@ class rcserver():
         self.server_callback.list = self._handle_list_command
         self.server_callback.upload = self._handle_upload_command
         self.server_callback.execute = self._handle_execute_command
-        self.server_callback.text = self._handle_text_command
+        self.server_callback.message = self._handle_message_command
 
         self.__HOST__ = host
         self.__PORT__ = port
@@ -1685,9 +1696,9 @@ class rcserver():
             logging.info('send done ({})'.format(ask_chunk.exec.program))
             sock._send(done_chunk.pack())
 
-    def _handle_text_command(self,
-                             sock: rcsock,
-                             ask_chunk: header_text):
+    def _handle_message_command(self,
+                                sock: rcsock,
+                                ask_chunk: header_message):
 
         logging.info('-------------------------------------------')
         logging.info('title={}'.format(ask_chunk.title))
@@ -1697,11 +1708,11 @@ class rcserver():
         if 'default' == ask_chunk.title:
             data = 'Hello from server with default'.encode()
 
-        elif 'computer_info' == ask_chunk.title:
+        elif 'inncmd_sysinfo' == ask_chunk.title:
             osname = platform.system().lower()
             homedir = os.path.expanduser('~')
-            data = computer_info(osname, homedir).toTEXT().encode()
-            done_chunk = header_text(action_kind.done, ask_chunk.title, data)
+            data = inncmd_sysinfo(osname, homedir).toTEXT().encode()
+            done_chunk = header_message(action_kind.done, ask_chunk.title, data)
             sock._send(done_chunk.pack())
 
         elif 'inncmd_mkdir' == ask_chunk.title:
@@ -1721,12 +1732,12 @@ class rcserver():
                 result = False
 
             data = inncmd_mkdir(path, result).toTEXT().encode()
-            done_chunk = header_text(action_kind.done, ask_chunk.title, data)
+            done_chunk = header_message(action_kind.done, ask_chunk.title, data)
             sock._send(done_chunk.pack())
 
         else:
             data = 'Hello from server with UNKNOWN'.encode()
-            done_chunk = header_text(action_kind.done, ask_chunk.title, data)
+            done_chunk = header_message(action_kind.done, ask_chunk.title, data)
             sock._send(done_chunk.pack())
 
         return True
@@ -2210,7 +2221,7 @@ class rcclient():
 
     def text(self, title: str, data: bytes = b''):
 
-        ask_chunk = header_text(action_kind.ask, title, data)
+        ask_chunk = header_message(action_kind.ask, title, data)
         self._send(ask_chunk.pack())
 
         is_there_a_chunk = self._wait_until(len,
@@ -2218,7 +2229,7 @@ class rcclient():
                                             _WAIT_TIMEOUT_,
                                             self.sock.chunk_list)
         if is_there_a_chunk:
-            done_chunk: header_text = self.sock.chunk_list.pop(0)
+            done_chunk: header_message = self.sock.chunk_list.pop(0)
 
             result = rcresult()
             result.data = done_chunk.payload_chunk
@@ -2228,14 +2239,13 @@ class rcclient():
         else:
             return error_wait_timeout_streaming
 
-    def get_computer_info(self):
-
-        result: rcresult = self.text('computer_info')
+    def inncmd_get_sysinfo(self):
+        result: rcresult = self.text('inncmd_sysinfo')
         text = str(result.data, encoding='utf-8')
-        data: computer_info = config().toCLASS(text)
+        data: inncmd_sysinfo = config().toCLASS(text)
         return data
 
-    def mkdir(self, path: str):
+    def inncmd_make_dir(self, path: str):
         result: rcresult = self.text('inncmd_mkdir', path.encode())
         text = str(result.data, encoding='utf-8')
         data: inncmd_mkdir = config().toCLASS(text)
@@ -2292,4 +2302,3 @@ if __name__ == '__main__':
                     logging.error("text={}".format(result.text))
             else:
                 logging.error("Failed to connect to server !!!")
-
