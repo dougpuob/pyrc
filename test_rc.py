@@ -8,6 +8,7 @@ import platform
 import unittest
 import threading
 
+from rc import CONFIG
 from rc import rcresult
 from rc import rcserver
 from rc import rcclient
@@ -17,7 +18,6 @@ from rc import header_download
 from rc import header_list
 from rc import header_execute
 from rc import header_message
-from rc import config
 from rc import inncmd_sysinfo
 from rc import inncmd_mkdir
 from rc import action_kind
@@ -412,7 +412,7 @@ class TestPyRc(unittest.TestCase):
         self.assertEqual(_DATA_, output_hdr.payload_chunk)
 
         text = str(output_hdr.payload_chunk, encoding='utf-8')
-        data: inncmd_sysinfo = config().toCLASS(text)
+        data: inncmd_sysinfo = CONFIG().toCLASS(text)
         self.assertEqual(data.osname, data.osname)
         self.assertEqual(data.homedir, data.homedir)
 
@@ -727,7 +727,7 @@ class TestPyRc(unittest.TestCase):
         self.assertEqual(result.errcode, 0)
         self.assertEqual(result.text, 'inncmd_sysinfo')
         text = str(result.data, encoding='utf-8')
-        data2: inncmd_sysinfo = config().toCLASS(text)
+        data2: inncmd_sysinfo = CONFIG().toCLASS(text)
         self.assertEqual(data1.osname, data2.osname)
         self.assertEqual(data1.homedir, data2.homedir)
 

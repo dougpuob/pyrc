@@ -45,7 +45,7 @@ _SIGNATURE_LIST___ = b'$SiGLiS$'
 _SIGNATURE_TEXT___ = b'$SiGTex$'
 
 
-class config():
+class CONFIG():
     def _try(self, o):
         try:
             return o.__dict__
@@ -63,10 +63,13 @@ class config():
             text = self.toTEXT()
         return json.loads(text, object_hook=lambda d: SimpleNamespace(**d))
 
+
 #
 # Exception definitions
 #
-class rcresult(config):
+
+
+class rcresult(CONFIG):
     def __init__(self, errcode: int = 0, errmsg: str = ''):
         self.errcode = errcode
         self.text = errmsg
@@ -135,13 +138,13 @@ class proc_status(Enum):
 #
 # Inner Commands
 #
-class inncmd_sysinfo(config):
+class inncmd_sysinfo(CONFIG):
     def __init__(self, osname: str = 'unknown', homedir: str = ''):
         self.osname = osname
         self.homedir = homedir
 
 
-class inncmd_mkdir(config):
+class inncmd_mkdir(CONFIG):
     def __init__(self, path: str, result: bool = False):
         self.path = path
         self.result = result
@@ -150,7 +153,7 @@ class inncmd_mkdir(config):
 #
 # Basic classes
 #
-class execmdarg(config):
+class execmdarg(CONFIG):
     def __init__(self,
                  program: bytes,
                  argument: bytes = '',
@@ -162,7 +165,7 @@ class execmdarg(config):
         self.isbase64 = isbase64
 
 
-class execresult(config):
+class execresult(CONFIG):
     def __init__(self):
         self.errcode = 0
         self.stdout = []
@@ -840,7 +843,7 @@ class header_execute():
         pos2 = pos2 + hdr.chunk_size
         if pos2 - pos1 > 0:
             chunk_data_raw = payload_content[pos1:pos2]
-            chunk_data_ori: execresult = config().toCLASS(chunk_data_raw)
+            chunk_data_ori: execresult = CONFIG().toCLASS(chunk_data_raw)
 
             hdr.chunk_data = chunk_data_ori
 
@@ -2242,13 +2245,13 @@ class rcclient():
     def inncmd_get_sysinfo(self):
         result: rcresult = self.text('inncmd_sysinfo')
         text = str(result.data, encoding='utf-8')
-        data: inncmd_sysinfo = config().toCLASS(text)
+        data: inncmd_sysinfo = CONFIG().toCLASS(text)
         return data
 
     def inncmd_make_dir(self, path: str):
         result: rcresult = self.text('inncmd_mkdir', path.encode())
         text = str(result.data, encoding='utf-8')
-        data: inncmd_mkdir = config().toCLASS(text)
+        data: inncmd_mkdir = CONFIG().toCLASS(text)
         return data
 
 
