@@ -15,7 +15,8 @@
             // Enter to unit testing
             //=================================================================
             "module": "pytest",
-            "args": ["-v"],
+            //"args": ["-v"],
+            "args": ["-v", "-k", "test_classify_execresult"],
             //"args": ["-v", "-k", "test_connect_then_execute_pwsh_cmd"],
             //"args": ["-v", "-k", "test_connect_then_execute_systeminfo_"],
             //-----------------------------------------------------------------

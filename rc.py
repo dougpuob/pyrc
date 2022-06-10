@@ -1977,6 +1977,19 @@ class rcclient():
 
         return result
 
+    def classify_execresult(self, cmdrs: execresult) -> rcresult:
+        result = rcresult()
+
+        result.data = cmdrs
+        if 0 != cmdrs.errcode:
+            result.errcode = cmdrs.errcode
+            if isinstance(cmdrs.stderr, list):
+                result.text = '\n'.join(cmdrs.stderr)
+            else:
+                result.text = str(cmdrs.stderr)
+
+        return result
+
     def cmd_upload(self, local_filepath: str, remote_dirpath: str = '.'):
 
         filepath = os.path.abspath(local_filepath)
@@ -2192,7 +2205,6 @@ class rcclient():
         else:
             argument_encoded = argument.encode('utf-8')
 
-        result = rcresult()
         proc_tag = 0
 
         cmdarg = execmdarg(program.encode('utf-8'),
@@ -2201,12 +2213,8 @@ class rcclient():
                            isbase64)
         cmdrs = self._execute_start(cmdarg)
 
-        result.data = cmdrs
-        if 0 != cmdrs.errcode:
-            result.errcode = cmdrs.errcode
-            result.text = '\n'.join(cmdrs.stderr)
-
-        else:
+        result: rcresult = self.classify_execresult(cmdrs)
+        if 0 == result.errcode:
             proc_tag = cmdrs.data
 
         if 0 == proc_tag:
@@ -2215,10 +2223,7 @@ class rcclient():
 
         elif proc_tag > 0:
             cmdrs = self._execute_query(cmdarg, proc_tag)
-            result.data = cmdrs
-            if 0 != cmdrs.errcode:
-                result.errcode = cmdrs.errcode
-                result.text = '\n'.join(cmdrs.stderr)
+            result: rcresult = self.classify_execresult(cmdrs)
         else:
             pass
 

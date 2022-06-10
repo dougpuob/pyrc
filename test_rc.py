@@ -23,6 +23,7 @@ from rc import inncmd_mkdir
 from rc import action_kind
 from rc import action_name
 from rc import execute_subcmd
+from rc import execresult
 
 
 _HOST_ = 'localhost'
@@ -769,6 +770,30 @@ class TestPyRc(unittest.TestCase):
 
         if os.path.exists(path):
             os.rmdir(path)
+
+    def test_classify_execresult(self):
+        client = rcclient()
+
+        execrs: execresult = execresult()
+        execrs.errcode = 10
+        execrs.stderr = []
+        self.assertIsNotNone(client.classify_execresult(execrs))
+
+        execrs.errcode = 10
+        execrs.stderr = ''
+        self.assertIsNotNone(client.classify_execresult(execrs))
+
+        execrs.errcode = 10
+        execrs.stderr = None
+        self.assertIsNotNone(client.classify_execresult(execrs))
+
+        execrs.errcode = 10
+        execrs.stderr = CONFIG().toTEXT()
+        self.assertIsNotNone(client.classify_execresult(execrs))
+
+        execrs.errcode = 10
+        execrs.stderr = rcresult().toCLASS()
+        self.assertIsNotNone(client.classify_execresult(execrs))
 
 
 if __name__ == '__main__':
